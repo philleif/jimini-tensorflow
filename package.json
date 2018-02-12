@@ -1,0 +1,19 @@
+{
+  "name": "jimini-tensorflow",
+  "version": "1.0.0",
+  "description": "Tensorflow-powered crypto trader.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/philleif/jimini-tensorflow.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/philleif/jimini-tensorflow/issues"
+  },
+  "homepage": "https://github.com/philleif/jimini-tensorflow#readme"
+}
