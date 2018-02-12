@@ -10,9 +10,10 @@ const csv = require("../lib/csv")
 const run = async () => {
   try {
     let exchangeData = await exchanges.getCandles("tXRPUSD", "1h")
-
-    let formattedData = await exchanges.formatData(exchangeData, exchanges.labels)
-    //console.log(exchangeData)
+    let formattedData = await exchanges.formatData(
+      exchangeData,
+      exchanges.labels
+    )
 
     await csv.writeCsv(formattedData, "./tmp/test-csv.csv")
   } catch (error) {
