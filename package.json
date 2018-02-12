@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/philleif/jimini-tensorflow/issues"
   },
-  "homepage": "https://github.com/philleif/jimini-tensorflow#readme"
+  "homepage": "https://github.com/philleif/jimini-tensorflow#readme",
+  "dependencies": {
+    "config": "^1.29.4"
+  }
 }

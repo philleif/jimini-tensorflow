@@ -1,0 +1,28 @@
+{
+  "datasets" : {
+    "test" : {
+      "timeframes": ["6h"],
+      "pairs": [
+        "LTCUSD"
+      ]
+    },
+    "train" : {
+      "timeframes": ["1h", "3h", "6h", "1D"],
+      "pairs": [
+        "IOTUSD",
+        "XRPUSD",
+        "DSHUSD",
+        "ETCUSD",
+        "XMRUSD",
+        "BTCUSD",
+        "ZECUSD",
+        "EOSUSD",
+        "ETHUSD",
+        "BCHUSD"
+      ]
+    }
+  },
+  "indicators": [
+    "apo"
+  ]
+}
