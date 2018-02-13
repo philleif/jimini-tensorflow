@@ -30,7 +30,9 @@ const run = async () => {
     return a.concat(b)
   }, [])
 
-  await csv.writeCsv(flatData, "./tmp/test-csv.csv")
+  let cleanData = await csv.cleanAndCompactCsv(flatData)
+
+  await csv.writeCsv(cleanData, "./tmp/test-csv.csv")
 }
 
 const getPairForTimeframeData = async (pair, timeframe) => {
@@ -67,7 +69,10 @@ const getPairForTimeframeData = async (pair, timeframe) => {
       data[i].mts = new Date(data[i].mts)
     }
     for (let i = 0; i < data.length - 1; i++) {
-      data[i].strategy = await strategy.getStrategy(data[i], data[i + 1])
+      let s = await strategy.getStrategy(data[i], data[i + 1])
+
+      data[i].strategy = s.label
+      data[i].strategy_index = s.index
     }
 
     return data

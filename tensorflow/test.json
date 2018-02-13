@@ -1,0 +1,20 @@
+{
+  "open": 50.693,
+  "close": 50.387,
+  "high": 50.901,
+  "low": 50.186,
+  "volume": 44333.70048,
+  "timeframe": "6h",
+  "time": "Tue Oct 10 2017 20:00:00 GMT-0400 (EDT)",
+  "apo_apo": 0.055806584,
+  "bop_bop": -0.427972028,
+  "tsf_forecast": 50.5598,
+  "tsf_net_percent": -0.00227849,
+  "fisher_fisher": 0.521665628,
+  "fisher_signal": 0.342060928,
+  "ppo_ppo": 0.110715137,
+  "roc_roc": 0.006371335,
+  "linreg_forecast": 50.5136,
+  "linreg_net_percent": -0.003195179,
+  "pair": "LTCUSD"
+}
