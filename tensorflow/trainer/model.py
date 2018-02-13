@@ -1,4 +1,4 @@
-"""Define a Deep model for classification on trade data."""
+"""Define a Deep model for classification on structured data."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -96,8 +96,12 @@ def build_estimator(config, embedding_size=8, hidden_units=None):
 
   deep_columns = [apo, ppo, roc, bop, tsf_net_percent]
 
-  return tf.estimator.DNNClassifier(hidden_units=[6,6,6,6],
-    feature_columns=deep_columns, n_classes=2)
+  return tf.estimator.DNNLinearCombinedClassifier(
+      config=config,
+      linear_feature_columns=wide_columns,
+      dnn_feature_columns=deep_columns,
+      dnn_hidden_units=hidden_units or [100, 70, 50, 25]
+  )
 
 def parse_label_column(label_string_tensor):
   """Parses a string tensor into the label tensor
