@@ -1,20 +1,9 @@
 {
   "datasets": {
     "test": {
-      "timeframes": ["1h", "3h", "6h", "12h", "1D"],
+      "timeframes": ["1D"],
       "pairs": [
-        "tLTCUSD",
-        "tIOTUSD",
-        "tXRPUSD",
-        "tDSHUSD",
-        "tETCUSD",
-        "tXMRUSD",
-        "tZECUSD",
-        "tEOSUSD",
-        "tETHUSD",
-        "tBCHUSD",
-        "tNEOUSD",
-        "tOMGUSD"
+        "tLTCUSD"
       ]
     },
     "train": {
@@ -49,6 +38,9 @@
     "qstick",
     "stoch",
     "emv",
+    "dm",
+    "adx",
+    "obv",
     "vosc"
   ]
 }
