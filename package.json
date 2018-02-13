@@ -18,10 +18,12 @@
   "homepage": "https://github.com/philleif/jimini-tensorflow#readme",
   "dependencies": {
     "async-exit-hook": "^2.0.1",
+    "axios": "^0.17.1",
     "bitfinex-api-node": "^2.0.0-beta",
     "config": "^1.29.4",
     "csv-writer": "0.0.3",
     "dotenv": "^5.0.0",
-    "fs": "0.0.1-security"
+    "fs": "0.0.1-security",
+    "tulind": "^0.8.9"
   }
 }

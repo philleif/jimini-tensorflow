@@ -1,28 +1,54 @@
 {
-  "datasets" : {
-    "test" : {
-      "timeframes": ["6h"],
+  "datasets": {
+    "test": {
+      "timeframes": ["1h", "3h", "6h", "12h", "1D"],
       "pairs": [
-        "LTCUSD"
+        "tLTCUSD",
+        "tIOTUSD",
+        "tXRPUSD",
+        "tDSHUSD",
+        "tETCUSD",
+        "tXMRUSD",
+        "tZECUSD",
+        "tEOSUSD",
+        "tETHUSD",
+        "tBCHUSD",
+        "tNEOUSD",
+        "tOMGUSD"
       ]
     },
-    "train" : {
-      "timeframes": ["1h", "3h", "6h", "1D"],
+    "train": {
+      "timeframes": ["1h", "3h", "6h", "12h", "1D"],
       "pairs": [
-        "IOTUSD",
-        "XRPUSD",
-        "DSHUSD",
-        "ETCUSD",
-        "XMRUSD",
-        "BTCUSD",
-        "ZECUSD",
-        "EOSUSD",
-        "ETHUSD",
-        "BCHUSD"
+        "tLTCUSD",
+        "tIOTUSD",
+        "tXRPUSD",
+        "tDSHUSD",
+        "tETCUSD",
+        "tXMRUSD",
+        "tZECUSD",
+        "tEOSUSD",
+        "tETHUSD",
+        "tBCHUSD",
+        "tNEOUSD",
+        "tOMGUSD"
       ]
     }
   },
   "indicators": [
-    "apo"
+    "apo",
+    "bop",
+    "tsf",
+    "fisher",
+    "ppo",
+    "roc",
+    "linreg",
+    "rocr",
+    "rsi",
+    "trix",
+    "qstick",
+    "stoch",
+    "emv",
+    "vosc"
   ]
 }
