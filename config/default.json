@@ -1,9 +1,20 @@
 {
   "datasets": {
     "test": {
-      "timeframes": ["1D"],
+      "timeframes": ["1h", "3h", "6h", "12h", "1D"],
       "pairs": [
-        "tLTCUSD"
+        "tLTCUSD",
+        "tIOTUSD",
+        "tXRPUSD",
+        "tDSHUSD",
+        "tETCUSD",
+        "tXMRUSD",
+        "tZECUSD",
+        "tEOSUSD",
+        "tETHUSD",
+        "tBCHUSD",
+        "tNEOUSD",
+        "tOMGUSD"
       ]
     },
     "train": {
