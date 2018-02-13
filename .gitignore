@@ -69,3 +69,4 @@ typings/
 
 # tensorflow
 __pycache__
+output
