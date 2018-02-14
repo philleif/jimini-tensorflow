@@ -24,6 +24,7 @@
     "csv-writer": "0.0.3",
     "dotenv": "^5.0.0",
     "fs": "0.0.1-security",
+    "talib": "^1.0.4",
     "tulind": "^0.8.9"
   }
 }
