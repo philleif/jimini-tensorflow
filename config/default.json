@@ -1,7 +1,7 @@
 {
   "datasets": {
     "test": {
-      "timeframes": ["1h", "3h", "15m", "30m"],
+      "timeframes": ["1h", "3h", "15m", "30m", "6h", "12h", "1D"],
       "pairs": [
         "tLTCUSD",
         "tIOTUSD",

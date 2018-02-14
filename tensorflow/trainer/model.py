@@ -12,15 +12,16 @@ import tensorflow as tf
 # Define the format of input data including unused columns
 CSV_COLUMNS = ['mts', 'open', 'close', 'high', 'low', 'volume', 'apo', 'bop',
                 'tsf_forecast', 'tsf_net_percent', 'fisher', 'fisher_signal',
-                'ppo', 'roc', 'linreg_net_percent', 'rocr', 'rsi', 'trix',
-                'qstick', 'stoch', 'stoch_d', 'emv', 'dm_plus', 'dm_minus', 'adx',
-                'obv', 'vosc', 'pair', 'timeframe', 'strategy']
+                'ppo', 'roc', 'linreg_forecast', 'linreg_net_percent', 'rocr', 'rsi',
+                'trix', 'qstick', 'stoch', 'stoch_d', 'emv', 'dm_plus', 'dm_minus',
+                'adx', 'obv', 'vosc', 'macd', 'macd_signal', 'macd_histogram',
+                'cci', 'dema', 'pair', 'timeframe', 'strategy', 'strategy_index']
 
-CSV_COLUMN_DEFAULTS = [[''], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
-                [0.0], [0.0], [0.0], [0.0],
-                [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
+CSV_COLUMN_DEFAULTS = [[''], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
                 [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
-                [0.0], [''], [''], ['']]
+                [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
+                [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
+                [0.0], [''], [''], [''], [''], [0]]
 
 LABEL_COLUMN = 'strategy'
 
@@ -96,12 +97,8 @@ def build_estimator(config, embedding_size=8, hidden_units=None):
 
   deep_columns = [apo, ppo, roc, bop, tsf_net_percent]
 
-  return tf.estimator.DNNLinearCombinedClassifier(
-      config=config,
-      linear_feature_columns=wide_columns,
-      dnn_feature_columns=deep_columns,
-      dnn_hidden_units=hidden_units or [100, 70, 50, 25]
-  )
+  return tf.estimator.DNNClassifier(hidden_units=[100, 70, 50, 25],
+    feature_columns=deep_columns, n_classes=2, config=config)
 
 def parse_label_column(label_string_tensor):
   """Parses a string tensor into the label tensor

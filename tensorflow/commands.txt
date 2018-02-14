@@ -1,3 +1,5 @@
+RUN TRAINER:
+
 gcloud ml-engine local train \
     --module-name trainer.task \
     --package-path trainer/ \
@@ -7,3 +9,56 @@ gcloud ml-engine local train \
     --eval-files ./data/test-csv.csv \
     --train-steps 1000 \
     --eval-steps 100
+
+gcloud ml-engine local train \
+    --module-name trainer.task \
+    --package-path trainer/ \
+    --job-dir output \
+    --distributed \
+    -- \
+    --train-files ./data/training-csv.csv \
+    --eval-files ./data/test-csv.csv \
+    --train-steps 1000 \
+    --eval-steps 100
+
+
+SET UP GOOGLE CLOUD:
+
+gsutil cp -r data gs://philleif/data
+
+gsutil cp ./test.json gs://philleif/data/test.json
+
+
+RUN CLOUD TRAINER:
+
+gcloud ml-engine jobs submit training jiminitraining_2 \
+    --job-dir gs://philleif/jiminitraining_2 \
+    --runtime-version 1.4 \
+    --module-name trainer.task \
+    --package-path trainer/ \
+    --region us-central1 \
+    -- \
+    --train-files gs://philleif/data/training-data.csv \
+    --eval-files gs://philleif/data/test-data.csv \
+    --train-steps 1000 \
+    --eval-steps 100 \
+    --verbosity DEBUG
+
+CREATE & DEPLOY A model
+
+gcloud ml-engine models create jimini --regions=us-central1
+
+gcloud ml-engine versions create v1 \
+--model jimini \
+--origin gs://philleif/jiminitraining_2/export/census/1518608109 \
+--runtime-version 1.4
+
+
+
+GET A PREDICTION
+
+gcloud ml-engine predict \
+--model jimini \
+--version v1 \
+--json-instances \
+./test.json
