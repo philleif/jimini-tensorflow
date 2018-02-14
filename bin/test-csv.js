@@ -60,7 +60,7 @@ const getPairForTimeframeData = async (pair, timeframe) => {
       }
     }
 
-    data = await formatDataForCsv(data)
+    data = await csv.formatDataForCsv(data)
 
     // assign metadata to trades
     for (let i = 0; i < data.length; i++) {
@@ -76,35 +76,6 @@ const getPairForTimeframeData = async (pair, timeframe) => {
     }
 
     return data
-  } catch (error) {
-    throw error
-  }
-}
-
-const formatDataForCsv = async data => {
-  try {
-    let csvHeaders = []
-    let csvData = []
-
-    for (let header of Object.keys(data)) {
-      // compile headers
-      csvHeaders.push({
-        id: header,
-        title: header
-      })
-    }
-
-    for (let i = 0; i < data["mts"].length; i++) {
-      let rowObject = {}
-
-      for (let header of Object.keys(data)) {
-        rowObject[header] = data[header][i]
-      }
-
-      csvData.push(rowObject)
-    }
-
-    return csvData
   } catch (error) {
     throw error
   }

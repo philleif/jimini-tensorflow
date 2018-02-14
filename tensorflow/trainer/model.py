@@ -28,33 +28,10 @@ LABEL_COLUMN = 'strategy'
 LABELS = ['BUY', 'SELL']
 
 INPUT_COLUMNS = [
-  tf.feature_column.categorical_column_with_vocabulary_list(
-        'timeframe', ['1D',
-                      '12h',
-                      '6h',
-                      '3h',
-                      '1h',
-                      '7D',
-                      '30m']),
   tf.feature_column.numeric_column('apo'),
   tf.feature_column.numeric_column('bop'),
   tf.feature_column.numeric_column('tsf_net_percent'),
-  tf.feature_column.numeric_column('fisher'),
-  tf.feature_column.numeric_column('fisher_signal'),
   tf.feature_column.numeric_column('ppo'),
-  tf.feature_column.numeric_column('roc'),
-  tf.feature_column.numeric_column('linreg_net_percent'),
-  tf.feature_column.numeric_column('rocr'),
-  tf.feature_column.numeric_column('rsi'),
-  tf.feature_column.numeric_column('trix'),
-  tf.feature_column.numeric_column('qstick'),
-  tf.feature_column.numeric_column('stoch'),
-  tf.feature_column.numeric_column('stoch_d'),
-  tf.feature_column.numeric_column('emv'),
-  tf.feature_column.numeric_column('dm_plus'),
-  tf.feature_column.numeric_column('dm_minus'),
-  tf.feature_column.numeric_column('adx'),
-  tf.feature_column.numeric_column('obv')
 ]
 
 UNUSED_COLUMNS = set(CSV_COLUMNS) - {col.name for col in INPUT_COLUMNS} - \
@@ -62,40 +39,9 @@ UNUSED_COLUMNS = set(CSV_COLUMNS) - {col.name for col in INPUT_COLUMNS} - \
 
 
 def build_estimator(config, embedding_size=8, hidden_units=None):
-  (timeframe, apo, bop, tsf_net_percent, fisher,
-  fisher_signal, ppo, roc, linreg_net_percent, rocr,
-  rsi, trix, qstick, stoch, stoch_d, emv, dm_plus, dm_minus,
-  adx, obv) = INPUT_COLUMNS
+  (apo, bop, tsf_net_percent, ppo) = INPUT_COLUMNS
 
-  rsi_buckets = tf.feature_column.bucketized_column(
-    rsi, boundaries=[20, 50, 80])
-
-  tsf_buckets = tf.feature_column.bucketized_column(
-    tsf_net_percent, boundaries=[0]
-  )
-
-  bop_buckets = tf.feature_column.bucketized_column(
-    bop, boundaries=[-0.5, -0.07, 0, 0.02, 0.5])
-
-  roc_buckets = tf.feature_column.bucketized_column(
-    roc, boundaries=[-0.05, 0, 0.07])
-
-  ppo_buckets = tf.feature_column.bucketized_column(
-    ppo, boundaries=[0])
-
-  wide_columns = [
-    ppo_buckets,
-    tsf_buckets,
-
-    tf.feature_column.crossed_column(
-    [ppo_buckets, tsf_buckets], hash_bucket_size=int(1e6)),
-        tf.feature_column.crossed_column(
-    [ppo_buckets, roc_buckets], hash_bucket_size=int(1e6)),
-        tf.feature_column.crossed_column(
-    [ppo_buckets, bop_buckets], hash_bucket_size=int(1e6))
-  ]
-
-  deep_columns = [apo, ppo, roc, bop, tsf_net_percent]
+  deep_columns = [apo, ppo, bop, tsf_net_percent]
 
   return tf.estimator.DNNClassifier(hidden_units=[100, 70, 50, 25],
     feature_columns=deep_columns, n_classes=2, config=config)
