@@ -25,6 +25,7 @@
     "dotenv": "^5.0.0",
     "fs": "0.0.1-security",
     "googleapis": "^26.0.1",
+    "mongoose": "^5.0.5",
     "talib": "^1.0.4",
     "tulind": "^0.8.9"
   }
