@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/philleif/jimini-tensorflow#readme",
   "dependencies": {
+    "agenda": "^1.0.3",
     "async-exit-hook": "^2.0.1",
     "axios": "^0.17.1",
     "bitfinex-api-node": "^2.0.0-beta",

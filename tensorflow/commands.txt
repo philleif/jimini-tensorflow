@@ -53,12 +53,10 @@ gcloud ml-engine versions create v1 \
 --origin gs://philleif/jiminitraining_2/export/census/1518614637 \
 --runtime-version 1.4
 
-
-
 GET A PREDICTION
 
 gcloud ml-engine predict \
 --model jimini \
---version v1 \
+--version v2 \
 --json-instances \
 ./test.json

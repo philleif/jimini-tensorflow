@@ -6,13 +6,15 @@ const config = require("config")
 const db = require("../lib/db")
 const trade = require("../lib/trade")
 const indicators = require("../lib/indicators").indicators
+const agenda = require("../lib/agenda").agenda
 
 // TODO: move these to config
 let PAIR = "tNEOUSD"
-let TIMEFRAME = "5m"
+let TIMEFRAME = "1m"
 let TRADE_AMOUNT = 5
 
 const TIMEFRAMES = {
+  "1m": "1 minute",
   "5m": "5 minutes",
   "15m": "15 minutes",
   "30m": "30 minutes",
@@ -21,6 +23,22 @@ const TIMEFRAMES = {
 }
 
 const run = async () => {
+  agenda.define("run loop", async (job, done) => {
+    console.log("Running prediction loop...", Date())
+
+    await runLoop()
+
+    done()
+  })
+
+  agenda.on("ready", function() {
+    agenda.every(TIMEFRAMES[TIMEFRAME], "run loop")
+
+    agenda.start()
+  })
+}
+
+const runLoop = async () => {
   try {
     // get candles and compute indicators
     let exchangeData = await exchanges.getCandles(PAIR, TIMEFRAME)
@@ -67,7 +85,6 @@ const run = async () => {
     // check for existing position
     let position = await db.Position.findOne({
       pair: PAIR,
-      timeframe: TIMEFRAME,
       status: "OPEN"
     })
 
@@ -99,6 +116,7 @@ const run = async () => {
       console.log("Closed position", PAIR, TIMEFRAME)
     }
 
+    return true
   } catch (error) {
     throw error
   }
