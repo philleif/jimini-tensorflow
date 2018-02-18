@@ -18,7 +18,7 @@ gcloud ml-engine local train \
     -- \
     --train-files ./data/training-csv.csv \
     --eval-files ./data/test-csv.csv \
-    --train-steps 1000 \
+    --train-steps 5000 \
     --eval-steps 100
 
 
@@ -44,19 +44,19 @@ gcloud ml-engine jobs submit training jiminitraining_2 \
     --eval-steps 100 \
     --verbosity DEBUG
 
-CREATE & DEPLOY A model
+CREATE & DEPLOY A MODEL:
 
 gcloud ml-engine models create jimini --regions=us-central1
 
-gcloud ml-engine versions create v1 \
---model jimini2 \
---origin gs://philleif/jiminitraining_2/export/census/1518614637 \
+gcloud ml-engine versions create v4 \
+--model jimini \
+--origin gs://philleif/jiminitraining_2/export/census/1518962536 \
 --runtime-version 1.4
 
 GET A PREDICTION
 
 gcloud ml-engine predict \
 --model jimini \
---version v2 \
+--version v3 \
 --json-instances \
 ./test.json

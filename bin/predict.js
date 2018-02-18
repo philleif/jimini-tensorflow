@@ -8,11 +8,12 @@ const trade = require("../lib/trade")
 const indicators = require("../lib/indicators").indicators
 const agenda = require("../lib/agenda").agenda
 
-// TODO: move these to config
-let PAIR = "tNEOUSD"
-let TIMEFRAME = "1m"
+let PAIRS = config.get("trading.pairs")
+let TIMEFRAME = config.get("trading.timeframe")
 let TRADE_AMOUNT = 5
+let TRADE_BALANCE = 1000 // per currency
 
+// bitfinex to agenda dictionary
 const TIMEFRAMES = {
   "1m": "1 minute",
   "5m": "5 minutes",
@@ -23,25 +24,45 @@ const TIMEFRAMES = {
 }
 
 const run = async () => {
-  agenda.define("run loop", async (job, done) => {
-    console.log("Running prediction loop...", Date())
+  try {
+    console.log("Starting up...")
 
-    await runLoop()
+    db.Position.remove({}, function() {})
+    db.AgendaJob.remove({}, function() {})
 
-    done()
-  })
+    agenda.define("run loop", async (job, done) => {
+      try {
+        console.log("Running prediction loop...", Date())
 
-  agenda.on("ready", function() {
-    agenda.every(TIMEFRAMES[TIMEFRAME], "run loop")
+        // TODO: separate job for each pair/timeframe
+        // rate limits?
+        for (let pair of PAIRS) {
+          await runLoop(pair, TIMEFRAME)
+        }
 
-    agenda.start()
-  })
+        done()
+      } catch (error) {
+        console.log(error)
+        done()
+      }
+    })
+
+    agenda.on("ready", async () => {
+      agenda.every(TIMEFRAMES[TIMEFRAME], "run loop")
+
+      agenda.start()
+    })
+  } catch (error) {
+    throw error
+  }
 }
 
-const runLoop = async () => {
+const runLoop = async (pair, timeframe) => {
   try {
+    console.log("Running prediction loop for", pair, timeframe, "...")
+
     // get candles and compute indicators
-    let exchangeData = await exchanges.getCandles(PAIR, TIMEFRAME)
+    let exchangeData = await exchanges.getCandles(pair, timeframe)
     let dataLabels = exchanges.labels
     let data = {}
 
@@ -52,6 +73,9 @@ const runLoop = async () => {
         data[dataLabels[i]].push(exchangeData[j][i])
       }
     }
+
+    // TODO: use current currency price (not close price) when calculating
+    // indicators
 
     // fetch indicator data
     for (let indicator of config.get("indicators")) {
@@ -66,17 +90,20 @@ const runLoop = async () => {
 
     data = await csv.formatDataForCsv(data)
 
-    // need the second to last candle to pull PPO
-    // TODO: is this an offset bug?
-    let lastCandles = [data[data.length - 1], data[data.length - 2]]
+    let lastCandle = data[data.length - 1]
+
+    console.log(lastCandle)
 
     // get prediction
     let predictObject = {
-      apo: lastCandles[0].apo,
-      bop: lastCandles[0].bop,
-      tsf_net_percent: lastCandles[0].tsf_net_percent,
-      ppo: lastCandles[1].ppo
+      apo: lastCandle.apo,
+      bop: lastCandle.bop,
+      tsf_net_percent: lastCandle.tsf_net_percent,
+      emv: lastCandle.emv,
+      ppo_smoothed: lastCandle.ppo_smoothed
     }
+
+    console.log(predictObject)
 
     let prediction = await trade.getPrediction(predictObject)
 
@@ -84,36 +111,74 @@ const runLoop = async () => {
 
     // check for existing position
     let position = await db.Position.findOne({
-      pair: PAIR,
+      pair: pair,
       status: "OPEN"
     })
 
     // prediction: BUY, no current position
     // open a new position
     if (prediction === "BUY" && !position) {
-      position = await new db.Position({
-        pair: PAIR,
-        timeframe: TIMEFRAME,
-        time: lastCandles[0].mts,
-        amount: TRADE_AMOUNT,
+      let newPosition = await new db.Position({
+        pair: pair,
+        timeframe: timeframe,
+        time: lastCandle.mts,
         status: "OPEN",
-        exchange: "bitfinex"
+        exchange: "bitfinex",
+        orderCount: 1
       })
 
-      position.openPrice = await exchanges.getPrice(PAIR)
+      newPosition.openPrice = await exchanges.getPrice(pair)
+      newPosition.amount = Math.round(TRADE_BALANCE / newPosition.openPrice)
+
+      await newPosition.save()
+
+      console.log(
+        "Opened position",
+        newPosition.amount,
+        pair,
+        timeframe,
+        "@",
+        newPosition.openPrice
+      )
+    }
+
+    // prediction BUY, current open position
+    // accumulate
+    if (prediction === "BUY" && position) {
+      let newPrice = await exchanges.getPrice(pair)
+      let prevAmount = position.amount
+      let addlAmount = Math.round(TRADE_BALANCE / position.openPrice)
+      console.log(newPrice, prevAmount)
+
+      // TODO: test this math
+      position.amount += addlAmount
+      position.orderCount += 1
+
+      console.log(
+        newPrice,
+        prevAmount,
+        position.openPrice,
+        position.amount,
+        position.orderCount
+      )
+
+      position.openPrice =
+        (position.openPrice * prevAmount + newPrice * addlAmount) /
+        position.amount
 
       await position.save()
-      console.log("Opened position", PAIR, TIMEFRAME)
     }
 
     // prediction: SELL, current open position
     // close position
     if (prediction === "SELL" && position) {
-      position.closePrice = await exchanges.getPrice(PAIR)
+      position.closePrice = await exchanges.getPrice(pair)
+      position.net =
+        position.amount * (position.closePrice - position.openPrice)
       position.status = "CLOSED"
 
       await position.save()
-      console.log("Closed position", PAIR, TIMEFRAME)
+      console.log("Closed position", pair, timeframe)
     }
 
     return true

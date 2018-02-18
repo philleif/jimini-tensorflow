@@ -12,13 +12,13 @@ import tensorflow as tf
 # Define the format of input data including unused columns
 CSV_COLUMNS = ['mts', 'open', 'close', 'high', 'low', 'volume', 'apo', 'bop',
                 'tsf_forecast', 'tsf_net_percent', 'fisher', 'fisher_signal',
-                'ppo', 'roc', 'linreg_forecast', 'linreg_net_percent', 'rocr', 'rsi',
+                'ppo', 'ppo_smoothed', 'roc', 'linreg_forecast', 'linreg_net_percent', 'rocr', 'rsi',
                 'trix', 'qstick', 'stoch', 'stoch_d', 'emv', 'dm_plus', 'dm_minus',
                 'adx', 'obv', 'vosc', 'macd', 'macd_signal', 'macd_histogram',
                 'cci', 'dema', 'pair', 'timeframe', 'strategy', 'strategy_index']
 
-CSV_COLUMN_DEFAULTS = [[''], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
-                [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
+CSV_COLUMN_DEFAULTS = [[''], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
+                [0.0], [0.0], [0.0],[0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
                 [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
                 [0.0], [0.0], [0.0], [0.0], [0.0], [0.0], [0.0],
                 [0.0], [''], [''], [''], [''], [0]]
@@ -31,7 +31,8 @@ INPUT_COLUMNS = [
   tf.feature_column.numeric_column('apo'),
   tf.feature_column.numeric_column('bop'),
   tf.feature_column.numeric_column('tsf_net_percent'),
-  tf.feature_column.numeric_column('ppo'),
+  tf.feature_column.numeric_column('emv'),
+  tf.feature_column.numeric_column('ppo_smoothed')
 ]
 
 UNUSED_COLUMNS = set(CSV_COLUMNS) - {col.name for col in INPUT_COLUMNS} - \
@@ -39,9 +40,9 @@ UNUSED_COLUMNS = set(CSV_COLUMNS) - {col.name for col in INPUT_COLUMNS} - \
 
 
 def build_estimator(config, embedding_size=8, hidden_units=None):
-  (apo, bop, tsf_net_percent, ppo) = INPUT_COLUMNS
+  (apo, bop, tsf_net_percent, emv, ppo_smoothed) = INPUT_COLUMNS
 
-  deep_columns = [apo, ppo, bop, tsf_net_percent]
+  deep_columns = [apo, bop, tsf_net_percent, emv, ppo_smoothed]
 
   return tf.estimator.DNNClassifier(hidden_units=[100, 70, 50, 25],
     feature_columns=deep_columns, n_classes=2, config=config)
