@@ -6,7 +6,7 @@ gcloud ml-engine local train \
     --job-dir output \
     -- \
     --train-files ./data/training-csv.csv \
-    --eval-files ./data/test-csv.csv \
+    --eval-files ./data/xmr-1h-test-csv.csv \
     --train-steps 5000 \
     --eval-steps 100
 
@@ -17,8 +17,8 @@ gcloud ml-engine local train \
     --distributed \
     -- \
     --train-files ./data/training-csv.csv \
-    --eval-files ./data/test-csv.csv \
-    --train-steps 5000 \
+    --eval-files ./data/edo-1h-test-csv.csv \
+    --train-steps 10000 \
     --eval-steps 100
 
 

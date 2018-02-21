@@ -164,7 +164,7 @@ const runLoop = async (pair, timeframe) => {
       return acc + (p.amount * p.openPrice)
     }, 0)
 
-    console.log("Current drawdown:", Math.round(currentDrawdown))
+    console.log("Current drawdown: $", Math.round(currentDrawdown))
 
     // prediction: BUY, no current position
     // open a new position

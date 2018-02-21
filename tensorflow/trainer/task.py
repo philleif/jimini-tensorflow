@@ -29,12 +29,12 @@ def run_experiment(hparams):
                                       max_steps=hparams.train_steps
                                       )
 
-  exporter = tf.estimator.FinalExporter('census',
+  exporter = tf.estimator.FinalExporter('jimini',
           model.SERVING_FUNCTIONS[hparams.export_format])
   eval_spec = tf.estimator.EvalSpec(eval_input,
                                     steps=hparams.eval_steps,
                                     exporters=[exporter],
-                                    name='census-eval'
+                                    name='jimini-eval'
                                     )
 
   run_config = tf.estimator.RunConfig()

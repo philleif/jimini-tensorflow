@@ -32,7 +32,8 @@ INPUT_COLUMNS = [
   tf.feature_column.numeric_column('bop'),
   tf.feature_column.numeric_column('tsf_net_percent'),
   tf.feature_column.numeric_column('emv'),
-  tf.feature_column.numeric_column('ppo_smoothed')
+  tf.feature_column.numeric_column('ppo_smoothed'),
+  tf.feature_column.numeric_column('rsi')
 ]
 
 UNUSED_COLUMNS = set(CSV_COLUMNS) - {col.name for col in INPUT_COLUMNS} - \
@@ -40,9 +41,9 @@ UNUSED_COLUMNS = set(CSV_COLUMNS) - {col.name for col in INPUT_COLUMNS} - \
 
 
 def build_estimator(config, embedding_size=8, hidden_units=None):
-  (apo, bop, tsf_net_percent, emv, ppo_smoothed) = INPUT_COLUMNS
+  (apo, bop, tsf_net_percent, emv, ppo_smoothed, rsi) = INPUT_COLUMNS
 
-  deep_columns = [apo, bop, tsf_net_percent, emv, ppo_smoothed]
+  deep_columns = [apo, bop, tsf_net_percent, emv, ppo_smoothed, rsi]
 
   return tf.estimator.DNNClassifier(hidden_units=[100, 70, 50, 25],
     feature_columns=deep_columns, n_classes=2, config=config)
