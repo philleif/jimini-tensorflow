@@ -10,7 +10,6 @@ const agenda = require("../lib/agenda").agenda
 
 let PAIRS = config.get("trading.pairs")
 let TIMEFRAME = config.get("trading.timeframe")
-let TRADE_AMOUNT = 5
 let TRADE_BALANCE = 1000 // per currency
 
 // bitfinex to agenda dictionary
@@ -30,6 +29,53 @@ const run = async () => {
     db.Position.remove({}, function() {})
     db.AgendaJob.remove({}, function() {})
 
+    agenda.define("check prices", async (job, done) => {
+      try {
+        let positions = await db.Position.find({ status: "OPEN" })
+
+        for (let position of positions) {
+          // check the current price
+          let currentPrice = await exchanges.getPrice(position.pair)
+
+          // capture profit if we get our prediction
+          // TODO: base this on  TSF%
+          // TODO: make this place a limit sell order
+          let priceChange =
+            (currentPrice - position.openPrice) / currentPrice * 100
+
+          let forecastPercent = position.forecastPercent * 100
+
+          console.log(
+            "Price change:",
+            position.pair,
+            "/",
+            position.openPrice,
+            "to",
+            currentPrice,
+            " / ",
+            priceChange,
+            "%"
+          )
+
+          // TODO: use TS forecast for HIGH
+          if (priceChange > forecastPercent * 0.8) {
+            console.log("Found profit on", position.pair)
+            trade.closePosition(position, currentPrice)
+          }
+          // TODO: use TS forecast for LOW
+          if (priceChange < -1 * forecastPercent) {
+            console.log("Took loss on", position.pair)
+            trade.closePosition(position, currentPrice)
+          }
+        }
+
+        done()
+      } catch (error) {
+        console.log(error)
+        done()
+      }
+    })
+
     agenda.define("run loop", async (job, done) => {
       try {
         console.log("Running prediction loop...", Date())
@@ -48,7 +94,11 @@ const run = async () => {
     })
 
     agenda.on("ready", async () => {
+      // run candle prediction loop
       agenda.every(TIMEFRAMES[TIMEFRAME], "run loop")
+
+      // check prices changes to lock in profit
+      agenda.every("45 seconds", "check prices")
 
       agenda.start()
     })
@@ -90,9 +140,16 @@ const runLoop = async (pair, timeframe) => {
 
     data = await csv.formatDataForCsv(data)
 
-    let lastCandle = data[data.length - 1]
+    // get ppo prediction from Prophet
+    for (let row of data) {
+      row.date = new Date(row.mts)
+    }
 
-    console.log(lastCandle)
+    await csv.writeCsv(data, "./tmp/ppo.csv")
+
+    let ppoForecast = await trade.getPpoForecast()
+
+    let lastCandle = data[data.length - 1]
 
     // get prediction
     let predictObject = {
@@ -100,14 +157,17 @@ const runLoop = async (pair, timeframe) => {
       bop: lastCandle.bop,
       tsf_net_percent: lastCandle.tsf_net_percent,
       emv: lastCandle.emv,
-      ppo_smoothed: lastCandle.ppo_smoothed
+      ppo_smoothed: Number(ppoForecast)
     }
-
-    console.log(predictObject)
 
     let prediction = await trade.getPrediction(predictObject)
 
-    console.log("Prediction:", prediction)
+    console.log(
+      "Prediction:",
+      prediction,
+      "/ Forecast: ",
+      lastCandle.tsf_net_percent * 100
+    )
 
     // check for existing position
     let position = await db.Position.findOne({
@@ -117,9 +177,10 @@ const runLoop = async (pair, timeframe) => {
 
     // prediction: BUY, no current position
     // open a new position
-    if (prediction === "BUY" && !position) {
+    if (prediction === "BUY" && !position && lastCandle.tsf_net_percent > 0) {
       let newPosition = await new db.Position({
         pair: pair,
+        forecastPercent: lastCandle.tsf_net_percent,
         timeframe: timeframe,
         time: lastCandle.mts,
         status: "OPEN",
@@ -136,7 +197,6 @@ const runLoop = async (pair, timeframe) => {
         "Opened position",
         newPosition.amount,
         pair,
-        timeframe,
         "@",
         newPosition.openPrice
       )
@@ -148,19 +208,9 @@ const runLoop = async (pair, timeframe) => {
       let newPrice = await exchanges.getPrice(pair)
       let prevAmount = position.amount
       let addlAmount = Math.round(TRADE_BALANCE / position.openPrice)
-      console.log(newPrice, prevAmount)
 
-      // TODO: test this math
       position.amount += addlAmount
       position.orderCount += 1
-
-      console.log(
-        newPrice,
-        prevAmount,
-        position.openPrice,
-        position.amount,
-        position.orderCount
-      )
 
       position.openPrice =
         (position.openPrice * prevAmount + newPrice * addlAmount) /
@@ -172,13 +222,9 @@ const runLoop = async (pair, timeframe) => {
     // prediction: SELL, current open position
     // close position
     if (prediction === "SELL" && position) {
-      position.closePrice = await exchanges.getPrice(pair)
-      position.net =
-        position.amount * (position.closePrice - position.openPrice)
-      position.status = "CLOSED"
+      let currentPrice = await exchanges.getPrice(pair)
 
-      await position.save()
-      console.log("Closed position", pair, timeframe)
+      trade.closePosition(position, currentPrice)
     }
 
     return true

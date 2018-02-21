@@ -1,6 +1,6 @@
 {
   "trading": {
-    "timeframe": "1h",
+    "timeframe": "5m",
     "pairs": [
       "tXRPUSD",
       "tDSHUSD",
@@ -9,7 +9,6 @@
       "tZECUSD",
       "tEOSUSD",
       "tETHUSD",
-      "tBTCUSD",
       "tBCHUSD",
       "tNEOUSD",
       "tOMGUSD",
@@ -18,10 +17,9 @@
   },
   "datasets": {
     "test": {
-      "timeframes": ["15m"],
+      "timeframes": ["1h"],
       "pairs": [
-        "tLTCUSD",
-        "tOMGUSD"
+        "tLTCUSD"
       ]
     },
     "train": {
