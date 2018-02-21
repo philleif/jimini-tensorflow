@@ -11,6 +11,7 @@ const agenda = require("../lib/agenda").agenda
 let PAIRS = config.get("trading.pairs")
 let TIMEFRAME = config.get("trading.timeframe")
 let TRADE_BALANCE = 1000 // per currency
+let MAX_DRAWDOWN = 50000 // total
 
 // bitfinex to agenda dictionary
 const TIMEFRAMES = {
@@ -38,33 +39,19 @@ const run = async () => {
           let currentPrice = await exchanges.getPrice(position.pair)
 
           // capture profit if we get our prediction
-          // TODO: base this on  TSF%
-          // TODO: make this place a limit sell order
-          let priceChange =
-            (currentPrice - position.openPrice) / currentPrice * 100
-
-          let forecastPercent = position.forecastPercent * 100
-
           console.log(
             "Price change:",
             position.pair,
-            "/",
-            position.openPrice,
-            "to",
+            "/ Current:",
             currentPrice,
-            " / ",
-            priceChange,
-            "%"
+            "Goal:",
+            position.forecastHigh,
+            "Stop:",
+            position.forecastLow
           )
 
-          // TODO: use TS forecast for HIGH
-          if (priceChange > forecastPercent * 0.8) {
+          if (currentPrice >= position.forecastHigh) {
             console.log("Found profit on", position.pair)
-            trade.closePosition(position, currentPrice)
-          }
-          // TODO: use TS forecast for LOW
-          if (priceChange < -1 * forecastPercent) {
-            console.log("Took loss on", position.pair)
             trade.closePosition(position, currentPrice)
           }
         }
@@ -145,9 +132,9 @@ const runLoop = async (pair, timeframe) => {
       row.date = new Date(row.mts)
     }
 
-    await csv.writeCsv(data, "./tmp/ppo.csv")
+    await csv.writeCsv(data, "./tmp/prophet.csv")
 
-    let ppoForecast = await trade.getPpoForecast()
+    let prophetForecasts = await trade.getProphetorecast()
 
     let lastCandle = data[data.length - 1]
 
@@ -157,17 +144,12 @@ const runLoop = async (pair, timeframe) => {
       bop: lastCandle.bop,
       tsf_net_percent: lastCandle.tsf_net_percent,
       emv: lastCandle.emv,
-      ppo_smoothed: Number(ppoForecast)
+      ppo_smoothed: prophetForecasts.ppo
     }
 
     let prediction = await trade.getPrediction(predictObject)
 
-    console.log(
-      "Prediction:",
-      prediction,
-      "/ Forecast: ",
-      lastCandle.tsf_net_percent * 100
-    )
+    console.log("Prediction:", prediction)
 
     // check for existing position
     let position = await db.Position.findOne({
@@ -175,12 +157,21 @@ const runLoop = async (pair, timeframe) => {
       status: "OPEN"
     })
 
+    // calculate max drawdown
+    let openPositions = await db.Position.find({ status: "OPEN" })
+    let currentDrawdown = openPositions.reduce((acc, p) => {
+      acc += (p.amount * p.openPrice)
+    }, 0)
+
+    console.log("Current drawdown:", currentDrawdown)
+
     // prediction: BUY, no current position
     // open a new position
-    if (prediction === "BUY" && !position && lastCandle.tsf_net_percent > 0) {
+    if (prediction === "BUY" && !position && currentDrawdown < MAX_DRAWDOWN) {
       let newPosition = await new db.Position({
         pair: pair,
-        forecastPercent: lastCandle.tsf_net_percent,
+        forecastHigh: prophetForecasts.high,
+        forecastLow: prophetForecasts.low,
         timeframe: timeframe,
         time: lastCandle.mts,
         status: "OPEN",
@@ -189,6 +180,12 @@ const runLoop = async (pair, timeframe) => {
       })
 
       newPosition.openPrice = await exchanges.getPrice(pair)
+
+      // fixes a case where the prediction is less than the current price
+      if (newPosition.openPrice > prophetForecasts.high) {
+        newPosition.forecastHigh = newPosition.openPrice * 1.05
+      }
+
       newPosition.amount = Math.round(TRADE_BALANCE / newPosition.openPrice)
 
       await newPosition.save()
@@ -204,7 +201,7 @@ const runLoop = async (pair, timeframe) => {
 
     // prediction BUY, current open position
     // accumulate
-    if (prediction === "BUY" && position) {
+    if (prediction === "BUY" && position && currentDrawdown < MAX_DRAWDOWN) {
       let newPrice = await exchanges.getPrice(pair)
       let prevAmount = position.amount
       let addlAmount = Math.round(TRADE_BALANCE / position.openPrice)
