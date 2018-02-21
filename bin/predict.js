@@ -144,6 +144,7 @@ const runLoop = async (pair, timeframe) => {
       bop: lastCandle.bop,
       tsf_net_percent: lastCandle.tsf_net_percent,
       emv: lastCandle.emv,
+      rsi: lastCandle.rsi,
       ppo_smoothed: prophetForecasts.ppo
     }
 
@@ -160,10 +161,10 @@ const runLoop = async (pair, timeframe) => {
     // calculate max drawdown
     let openPositions = await db.Position.find({ status: "OPEN" })
     let currentDrawdown = openPositions.reduce((acc, p) => {
-      acc += (p.amount * p.openPrice)
+      return acc + (p.amount * p.openPrice)
     }, 0)
 
-    console.log("Current drawdown:", currentDrawdown)
+    console.log("Current drawdown:", Math.round(currentDrawdown))
 
     // prediction: BUY, no current position
     // open a new position
