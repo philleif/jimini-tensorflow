@@ -19,26 +19,44 @@
     "test": {
       "timeframes": ["1h"],
       "pairs": [
-        "tLTCUSD"
+        "tXMRUSD",
+        "tOMGUSD"
       ]
     },
     "train": {
-      "timeframes": ["1h", "3h", "6h", "12h", "1D"],
+      "timeframes": ["5m", "15m", "30m", "1h", "3h", "6h", "12h", "1D"],
       "pairs": [
         "tXRPUSD",
         "tDSHUSD",
         "tETCUSD",
-        "tXMRUSD",
         "tZECUSD",
         "tEOSUSD",
         "tETHUSD",
         "tBTCUSD",
         "tBCHUSD",
-        "tNEOUSD"
+        "tNEOUSD",
+        "tOMGUSD",
+        "tSANUSD",
+        "tLTCUSD",
+        "tIOTUSD",
+        "tSANBTC",
+        "tXRPBTC",
+        "tDSHBTC",
+        "tETCBTC",
+        "tXMRBTC",
+        "tZECBTC",
+        "tEOSBTC",
+        "tETHBTC",
+        "tBCHBTC",
+        "tNEOBTC",
+        "tOMGBTC",
+        "tLTCBTC",
+        "tIOTEUR",
+        "tBTCEUR"
       ]
     },
     "all": {
-      "timeframes": ["15m", "30m", "1h", "3h", "6h", "12h", "1D"],
+      "timeframes": ["5m", "15m", "30m", "1h", "3h", "6h", "12h", "1D"],
       "pairs": [
         "tXRPUSD",
         "tDSHUSD",
@@ -51,7 +69,24 @@
         "tBCHUSD",
         "tNEOUSD",
         "tOMGUSD",
-        "tLTCUSD"
+        "tSANUSD",
+        "tLTCUSD",
+        "tIOTUSD",
+        "tSANBTC",
+        "tOMGUSD",
+        "tXRPBTC",
+        "tDSHBTC",
+        "tETCBTC",
+        "tXMRBTC",
+        "tZECBTC",
+        "tEOSBTC",
+        "tETHBTC",
+        "tBCHBTC",
+        "tNEOBTC",
+        "tOMGBTC",
+        "tLTCBTC",
+        "tIOTEUR",
+        "tBTCEUR"
       ]
     }
   },
