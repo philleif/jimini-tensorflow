@@ -9,7 +9,7 @@ df = pd.read_csv('./tmp/prophet.csv')
 
 # PPO forecast
 df['y'] = df['ppo_smoothed']
-df['ds'] = df['date']
+df['ds'] = df['mts']
 m = Prophet(interval_width=0.2, changepoint_prior_scale=0.01)
 m.fit(df)
 future = m.make_future_dataframe(periods=1, freq='H')

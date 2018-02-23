@@ -5,23 +5,13 @@ const csv = require("../lib/csv")
 const config = require("config")
 const db = require("../lib/db")
 const trade = require("../lib/trade")
-const indicators = require("../lib/indicators").indicators
+const indicators = require("../lib/indicators")
 const agenda = require("../lib/agenda").agenda
 
-let PAIRS = config.get("trading.pairs")
 let TIMEFRAME = config.get("trading.timeframe")
-let TRADE_BALANCE = 1000 // per currency
-let MAX_DRAWDOWN = 50000 // total
-
-// bitfinex to agenda dictionary
-const TIMEFRAMES = {
-  "1m": "1 minute",
-  "5m": "5 minutes",
-  "15m": "15 minutes",
-  "30m": "30 minutes",
-  "1h": "1 hour",
-  "3h": "3 hours"
-}
+let TRADE_BALANCE = config.get("trading.balance") // per currency
+let MAX_DRAWDOWN = config.get("trading.drawdown") // total
+const TIMEFRAMES = config.get("timeframes")
 
 const run = async () => {
   try {
@@ -29,6 +19,23 @@ const run = async () => {
 
     db.Position.remove({}, function() {})
     db.AgendaJob.remove({}, function() {})
+
+    agenda.define("run loop", async (job, done) => {
+      try {
+        console.log("Running prediction loop...", Date())
+
+        // TODO: separate job for each pair/timeframe
+        // rate limits?
+        for (let pair of config.get("trading.pairs")) {
+          await runLoop(pair, TIMEFRAME)
+        }
+
+        done()
+      } catch (error) {
+        console.log(error)
+        done()
+      }
+    })
 
     agenda.define("check prices", async (job, done) => {
       try {
@@ -63,29 +70,12 @@ const run = async () => {
       }
     })
 
-    agenda.define("run loop", async (job, done) => {
-      try {
-        console.log("Running prediction loop...", Date())
-
-        // TODO: separate job for each pair/timeframe
-        // rate limits?
-        for (let pair of PAIRS) {
-          await runLoop(pair, TIMEFRAME)
-        }
-
-        done()
-      } catch (error) {
-        console.log(error)
-        done()
-      }
-    })
-
     agenda.on("ready", async () => {
       // run candle prediction loop
       agenda.every(TIMEFRAMES[TIMEFRAME], "run loop")
 
       // check prices changes to lock in profit
-      agenda.every("45 seconds", "check prices")
+      agenda.every("1 minute", "check prices")
 
       agenda.start()
     })
@@ -98,44 +88,13 @@ const runLoop = async (pair, timeframe) => {
   try {
     console.log("Running prediction loop for", pair, timeframe, "...")
 
-    // get candles and compute indicators
     let exchangeData = await exchanges.getCandles(pair, timeframe)
     let dataLabels = exchanges.labels
-    let data = {}
-
-    for (let i = 0; i < dataLabels.length; i++) {
-      data[dataLabels[i]] = []
-
-      for (let j = 0; j < exchangeData.length; j++) {
-        data[dataLabels[i]].push(exchangeData[j][i])
-      }
-    }
-
-    // TODO: use current currency price (not close price) when calculating
-    // indicators
-
-    // fetch indicator data
-    for (let indicator of config.get("indicators")) {
-      let indicatorData = await indicators[indicator](data)
-
-      // add additional labels and indicator data
-      for (let field of Object.keys(indicatorData)) {
-        dataLabels.push(field)
-        data[field] = indicatorData[field]
-      }
-    }
-
-    data = await csv.formatDataForCsv(data)
-
-    // get ppo prediction from Prophet
-    for (let row of data) {
-      row.date = new Date(row.mts)
-    }
+    let data = await indicators.formatIndicatorData(exchangeData, dataLabels)
 
     await csv.writeCsv(data, "./tmp/prophet.csv")
 
     let prophetForecasts = await trade.getProphetorecast()
-
     let lastCandle = data[data.length - 1]
 
     // get prediction
@@ -144,7 +103,6 @@ const runLoop = async (pair, timeframe) => {
       bop: lastCandle.bop,
       tsf_net_percent: lastCandle.tsf_net_percent,
       emv: lastCandle.emv,
-      rsi: lastCandle.rsi,
       ppo_smoothed: prophetForecasts.ppo
     }
 
@@ -161,10 +119,8 @@ const runLoop = async (pair, timeframe) => {
     // calculate max drawdown
     let openPositions = await db.Position.find({ status: "OPEN" })
     let currentDrawdown = openPositions.reduce((acc, p) => {
-      return acc + (p.amount * p.openPrice)
+      return acc + p.amount * p.openPrice
     }, 0)
-
-    console.log("Current drawdown: $", Math.round(currentDrawdown))
 
     // prediction: BUY, no current position
     // open a new position

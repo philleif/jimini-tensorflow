@@ -30,9 +30,9 @@ const run = async () => {
     return a.concat(b)
   }, [])
 
-  let cleanData = await csv.cleanAndCompactCsv(flatData)
+  //let cleanData = await csv.cleanAndCompactCsv(flatData)
 
-  await csv.writeCsv(cleanData, "./tmp/test-csv.csv")
+  await csv.writeCsv(flatData, "./tmp/test-csv.csv")
 }
 
 const getPairForTimeframeData = async (pair, timeframe) => {
