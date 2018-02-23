@@ -37,17 +37,20 @@ const run = async () => {
       }
     })
 
-    agenda.define("check prices", async (job, done) => {
-      try {
-        let positions = await db.Position.find({ status: "OPEN" })
+    agenda.define(
+      "check prices",
+      { priority: "high", concurrency: 5 },
+      async (job, done) => {
+        try {
+          let position = job.attrs.data.position
+          console.log(position)
 
-        for (let position of positions) {
           // check the current price
           let currentPrice = await exchanges.getPrice(position.pair)
 
           // capture profit if we get our prediction
           console.log(
-            "Price change:",
+            "Price watch:",
             position.pair,
             "/ Current:",
             currentPrice,
@@ -61,21 +64,30 @@ const run = async () => {
             console.log("Found profit on", position.pair)
             trade.closePosition(position, currentPrice)
           }
-        }
 
-        done()
-      } catch (error) {
-        console.log(error)
-        done()
+          if (currentPrice < position.forecastLow) {
+            console.log("Took loss on ", position.pair)
+            trade.closePosition(position, currentPrice)
+          }
+
+          done()
+        } catch (error) {
+          console.log(error)
+          done()
+        }
       }
-    })
+    )
 
     agenda.on("ready", async () => {
       // run candle prediction loop
       agenda.every(TIMEFRAMES[TIMEFRAME], "run loop")
 
       // check prices changes to lock in profit
-      agenda.every("1 minute", "check prices")
+      let positions = await db.Position.find({ status: "OPEN" })
+
+      for (let position of positions) {
+        agenda.every("1 minute", "check prices", { position: position })
+      }
 
       agenda.start()
     })

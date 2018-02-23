@@ -12,6 +12,9 @@
     "drawdown": 25000,
     "timeframe": "5m",
     "pairs": [
+      "tZECUSD",
+      "tEOSUSD",
+      "tETHUSD",
       "tXRPUSD",
       "tDSHUSD"
     ]
