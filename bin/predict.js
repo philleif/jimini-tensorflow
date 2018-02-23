@@ -20,15 +20,24 @@ const run = async () => {
     //db.Position.remove({}, function() {})
     db.AgendaJob.remove({}, function() {})
 
+    agenda.define("main trading loop", async (job, done) => {
+      try {
+        for (let pair of config.get("trading.pairs")) {
+          agenda.now("run loop", { pair: pair, timeframe: TIMEFRAME })
+        }
+
+        done()
+      } catch (error) {
+        console.log(error)
+        done()
+      }
+    })
+
     agenda.define("run loop", async (job, done) => {
       try {
         console.log("Running prediction loop...", Date())
-
-        // TODO: separate job for each pair/timeframe
-        // rate limits?
-        for (let pair of config.get("trading.pairs")) {
-          await runLoop(pair, TIMEFRAME)
-        }
+        let data = job.attrs.data
+        await runLoop(data.pair, data.timeframe)
 
         done()
       } catch (error) {
@@ -94,7 +103,7 @@ const run = async () => {
 
     agenda.on("ready", async () => {
       // run candle prediction loop
-      agenda.every(TIMEFRAMES[TIMEFRAME], "run loop")
+      agenda.every(TIMEFRAMES[TIMEFRAME], "main trading loop")
 
       agenda.every("1 minute", "price loop")
 
