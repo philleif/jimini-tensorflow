@@ -17,7 +17,7 @@ const run = async () => {
   try {
     console.log("Starting up...")
 
-    db.Position.remove({}, function() {})
+    //db.Position.remove({}, function() {})
     db.AgendaJob.remove({}, function() {})
 
     agenda.define("run loop", async (job, done) => {
@@ -43,7 +43,6 @@ const run = async () => {
       async (job, done) => {
         try {
           let position = job.attrs.data.position
-          console.log(position)
 
           // check the current price
           let currentPrice = await exchanges.getPrice(position.pair)
@@ -78,16 +77,26 @@ const run = async () => {
       }
     )
 
+    agenda.define("price loop", async (job, done) => {
+      try {
+        // check prices changes to lock in profit
+        let positions = await db.Position.find({ status: "OPEN" })
+        for (let position of positions) {
+          agenda.now("check prices", { position: position })
+        }
+
+        done()
+      } catch (error) {
+        console.log(error)
+        done()
+      }
+    })
+
     agenda.on("ready", async () => {
       // run candle prediction loop
       agenda.every(TIMEFRAMES[TIMEFRAME], "run loop")
 
-      // check prices changes to lock in profit
-      let positions = await db.Position.find({ status: "OPEN" })
-
-      for (let position of positions) {
-        agenda.every("1 minute", "check prices", { position: position })
-      }
+      agenda.every("1 minute", "price loop")
 
       agenda.start()
     })
