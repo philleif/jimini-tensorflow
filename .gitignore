@@ -70,3 +70,4 @@ typings/
 # tensorflow
 __pycache__
 output
+saved_model.pb
