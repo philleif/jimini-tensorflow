@@ -48,9 +48,9 @@ CREATE & DEPLOY A MODEL:
 
 gcloud ml-engine models create jimini --regions=us-central1
 
-gcloud ml-engine versions create v4 \
+gcloud ml-engine versions create v5 \
 --model jimini \
---origin gs://philleif/jiminitraining_2/export/census/1518962536 \
+--origin gs://philleif/jimini/models/1519255270 \
 --runtime-version 1.4
 
 GET A PREDICTION
@@ -60,3 +60,5 @@ gcloud ml-engine predict \
 --version v3 \
 --json-instances \
 ./test.json
+
+gcloud ml-engine local predict --json-instances="./tmp/predictionObject.json" --model-dir="./tensorflow/output/export/census/1519255270"

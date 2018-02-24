@@ -17,7 +17,7 @@ const run = async () => {
   try {
     console.log("Starting up...")
 
-    //db.Position.remove({}, function() {})
+    db.Position.remove({}, function() {})
     db.AgendaJob.remove({}, function() {})
 
     agenda.define("main trading loop", async (job, done) => {
@@ -35,7 +35,6 @@ const run = async () => {
 
     agenda.define("run loop", async (job, done) => {
       try {
-        console.log("Running prediction loop...", Date())
         let data = job.attrs.data
         await runLoop(data.pair, data.timeframe)
 
@@ -122,9 +121,9 @@ const runLoop = async (pair, timeframe) => {
     let dataLabels = exchanges.labels
     let data = await indicators.formatIndicatorData(exchangeData, dataLabels)
 
-    await csv.writeCsv(data, "./tmp/prophet.csv")
+    await csv.writeCsv(data, `./tmp/prophet-${pair}.csv`)
 
-    let prophetForecasts = await trade.getProphetorecast()
+    let prophetForecasts = await trade.prophetPromise(pair)
     let lastCandle = data[data.length - 1]
 
     // get prediction
@@ -136,7 +135,7 @@ const runLoop = async (pair, timeframe) => {
       ppo_smoothed: prophetForecasts.ppo
     }
 
-    let prediction = await trade.getPrediction(predictObject)
+    let prediction = await trade.getPrediction(predictObject, pair)
 
     console.log("Prediction:", prediction)
 

@@ -21,8 +21,8 @@
   },
   "datasets": {
     "test": {
-      "timeframes": ["5m"],
-      "pairs": ["tETCUSD"]
+      "timeframes": ["1h"],
+      "pairs": ["tOMGUSD"]
     },
     "train": {
       "timeframes": ["5m"],
