@@ -8,9 +8,9 @@
     "3h": "3 hours"
   },
   "trading": {
-    "balance": 1000,
-    "drawdown": 25000,
-    "timeframe": "5m",
+    "balance": 2000,
+    "drawdown": 35000,
+    "timeframe": "15m",
     "pairs": [
       "tZECUSD",
       "tEOSUSD",
