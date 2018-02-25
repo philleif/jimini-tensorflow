@@ -71,3 +71,5 @@ typings/
 __pycache__
 output
 saved_model.pb
+ppo_model*
+checkpoint

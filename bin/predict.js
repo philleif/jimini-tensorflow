@@ -5,6 +5,7 @@ const csv = require("../lib/csv")
 const config = require("config")
 const db = require("../lib/db")
 const trade = require("../lib/trade")
+
 const indicators = require("../lib/indicators")
 const agenda = require("../lib/agenda").agenda
 
@@ -115,7 +116,7 @@ const run = async () => {
 
 const runLoop = async (pair, timeframe) => {
   try {
-    console.log("Running prediction loop for", pair, timeframe, "...")
+    console.log(pair, "Running prediction loop", timeframe, "...")
 
     let exchangeData = await exchanges.getCandles(pair, timeframe)
     let dataLabels = exchanges.labels
@@ -124,6 +125,11 @@ const runLoop = async (pair, timeframe) => {
     await csv.writeCsv(data, `./tmp/prophet-${pair}.csv`)
 
     let prophetForecasts = await trade.prophetPromise(pair)
+
+    let ppoForecast = await trade.ppoPromise(pair)
+
+    console.log(pair, "- PPO forcast:", ppoForecast)
+
     let lastCandle = data[data.length - 1]
 
     // get prediction
@@ -132,12 +138,12 @@ const runLoop = async (pair, timeframe) => {
       bop: lastCandle.bop,
       tsf_net_percent: lastCandle.tsf_net_percent,
       emv: lastCandle.emv,
-      ppo_smoothed: prophetForecasts.ppo
+      ppo_smoothed: ppoForecast
     }
 
     let prediction = await trade.getPrediction(predictObject, pair)
 
-    console.log("Prediction:", prediction)
+    console.log(pair, "- Prediction:", prediction)
 
     // check for existing position
     let position = await db.Position.findOne({
