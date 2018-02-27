@@ -10,7 +10,8 @@
   "trading": {
     "mode": "paper",
     "balance": 2000,
-    "max-drawdown": 5000,
+    "maxExposure": 2500,
+    "maxDrawdown": 2500,
     "timeframe": "30m",
     "pairs": [
       "tXRPUSD",
