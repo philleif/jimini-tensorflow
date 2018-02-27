@@ -19,7 +19,7 @@ ppo_series = pd.DataFrame()
 ppo_series['mts'] = pd.to_datetime(all_series['mts'])
 
 ppo_series['ppo'] = all_series['ppo']
-ppo_series['ppo'] = pd.ewma(ppo_series['ppo'], com=5)
+ppo_series['ppo'] = pd.ewma(ppo_series['ppo'], com=2)
 
 ppo_series.index = pd.to_datetime(ppo_series['mts'])
 ppo_series = ppo_series.drop('mts', axis=1)
@@ -62,7 +62,7 @@ y = tf.placeholder(tf.float32, [None, num_time_steps, num_outputs])
 
 # Also play around with GRUCell
 cell = tf.contrib.rnn.OutputProjectionWrapper(
-    tf.contrib.rnn.CoupledInputForgetGateLSTMCell(num_units=num_neurons, activation=tf.nn.relu),
+    tf.contrib.rnn.GRUCell(num_units=num_neurons, activation=tf.nn.relu),
     output_size=num_outputs)
 
 outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)

@@ -8,21 +8,34 @@
     "3h": "3 hours"
   },
   "trading": {
+    "mode": "paper",
     "balance": 2000,
-    "drawdown": 35000,
-    "timeframe": "15m",
+    "max-drawdown": 5000,
+    "timeframe": "30m",
     "pairs": [
-      "tZECUSD",
-      "tEOSUSD",
-      "tETHUSD",
       "tXRPUSD",
-      "tDSHUSD"
+      "tLTCUSD",
+      "tETHUSD",
+      "tETCUSD",
+      "tEOSUSD",
+      "tNEOUSD",
+      "tBCHUSD",
+      "tIOTUSD"
     ]
   },
   "datasets": {
     "test": {
       "timeframes": ["1h"],
-      "pairs": ["tOMGUSD"]
+      "pairs": [
+        "tXRPUSD",
+        "tLTCUSD",
+        "tETHUSD",
+        "tETCUSD",
+        "tEOSUSD",
+        "tNEOUSD",
+        "tBCHUSD",
+        "tIOTUSD"
+      ]
     },
     "train": {
       "timeframes": ["5m"],
