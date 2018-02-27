@@ -5,10 +5,23 @@
 
 const exitHook = require("async-exit-hook")
 const config = require("config")
-const strategy = require("../lib/strategy")
 const exchanges = require("../lib/exchanges")
 const csv = require("../lib/csv")
 const indicators = require("../lib/indicators").indicators
+
+const STRATEGIES = {
+  "SELL": {
+    label: "SELL",
+    index: 0
+  },
+  "BUY": {
+    label: "BUY",
+    index: 1
+  },
+  "HOLD": {
+    index: 2
+  }
+}
 
 const run = async () => {
   let data = []
@@ -33,6 +46,18 @@ const run = async () => {
   //let cleanData = await csv.cleanAndCompactCsv(flatData)
 
   await csv.writeCsv(flatData, "./tmp/test-csv.csv")
+}
+
+const getStrategy = async (row, nextRow) => {
+  let strategy = STRATEGIES["HOLD"]
+
+  if(nextRow.close > row.close) {
+    strategy = STRATEGIES["BUY"]
+  } else if (nextRow.close < row.close) {
+    strategy = STRATEGIES["SELL"]
+  }
+
+  return strategy
 }
 
 const getPairForTimeframeData = async (pair, timeframe) => {
@@ -69,7 +94,7 @@ const getPairForTimeframeData = async (pair, timeframe) => {
       data[i].mts = new Date(data[i].mts)
     }
     for (let i = 0; i < data.length - 1; i++) {
-      let s = await strategy.getStrategy(data[i], data[i + 1])
+      let s = await getStrategy(data[i], data[i + 1])
 
       data[i].strategy = s.label
       data[i].strategy_index = s.index
