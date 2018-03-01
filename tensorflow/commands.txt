@@ -48,9 +48,9 @@ CREATE & DEPLOY A MODEL:
 
 gcloud ml-engine models create jimini --regions=us-central1
 
-gcloud ml-engine versions create v5 \
+gcloud ml-engine versions create v6 \
 --model jimini \
---origin gs://philleif/jimini/models/1519255270 \
+--origin gs://philleif/jimini/models/1519861348 \
 --runtime-version 1.4
 
 GET A PREDICTION

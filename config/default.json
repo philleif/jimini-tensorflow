@@ -21,21 +21,15 @@
       "tEOSUSD",
       "tNEOUSD",
       "tBCHUSD",
-      "tIOTUSD"
+      "tIOTUSD",
+      "tOMGUSD"
     ]
   },
   "datasets": {
     "test": {
-      "timeframes": ["1h"],
+      "timeframes": ["30m"],
       "pairs": [
-        "tXRPUSD",
-        "tLTCUSD",
-        "tETHUSD",
-        "tETCUSD",
-        "tEOSUSD",
-        "tNEOUSD",
-        "tBCHUSD",
-        "tIOTUSD"
+        "tXRPUSD"
       ]
     },
     "train": {

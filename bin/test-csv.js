@@ -43,9 +43,9 @@ const run = async () => {
     return a.concat(b)
   }, [])
 
-  //let cleanData = await csv.cleanAndCompactCsv(flatData)
+  let cleanData = await csv.cleanAndCompactCsv(flatData)
 
-  await csv.writeCsv(flatData, "./tmp/test-csv.csv")
+  await csv.writeCsv(cleanData, "./tmp/test-csv.csv")
 }
 
 const getStrategy = async (row, nextRow) => {

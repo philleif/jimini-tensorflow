@@ -72,7 +72,6 @@ optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 train = optimizer.minimize(loss)
 
 init = tf.global_variables_initializer()
-saver = tf.train.Saver()
 
 with tf.Session() as sess:
     sess.run(init)
@@ -86,14 +85,6 @@ with tf.Session() as sess:
 
             mse = loss.eval(feed_dict={X: X_batch, y: y_batch})
             print(iteration, "\tMSE:", mse)
-
-    # Save Model for Later
-    saver.save(sess, "./tensorflow/ppo_model")
-
-with tf.Session() as sess:
-
-    # Use your Saver instance to restore your saved rnn time series model
-    saver.restore(sess, "./tensorflow/ppo_model")
 
     # Create a numpy array for your genreative seed from the last 12 months of the
     # training set data. Hint: Just use tail(12) and then pass it to an np.array

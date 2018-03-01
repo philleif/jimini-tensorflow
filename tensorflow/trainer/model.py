@@ -32,8 +32,7 @@ INPUT_COLUMNS = [
   tf.feature_column.numeric_column('bop'),
   tf.feature_column.numeric_column('tsf_net_percent'),
   tf.feature_column.numeric_column('emv'),
-  tf.feature_column.numeric_column('ppo_smoothed'),
-  tf.feature_column.numeric_column('rsi')
+  tf.feature_column.numeric_column('ppo')
 ]
 
 UNUSED_COLUMNS = set(CSV_COLUMNS) - {col.name for col in INPUT_COLUMNS} - \
@@ -41,12 +40,15 @@ UNUSED_COLUMNS = set(CSV_COLUMNS) - {col.name for col in INPUT_COLUMNS} - \
 
 
 def build_estimator(config, embedding_size=8, hidden_units=None):
-  (apo, bop, tsf_net_percent, emv, ppo_smoothed, rsi) = INPUT_COLUMNS
+  (apo, bop, tsf_net_percent, emv, ppo) = INPUT_COLUMNS
 
-  deep_columns = [apo, bop, tsf_net_percent, emv, ppo_smoothed, rsi]
+  deep_columns = [apo, bop, tsf_net_percent, emv, ppo]
 
-  return tf.estimator.DNNClassifier(hidden_units=[100, 70, 50, 25],
-    feature_columns=deep_columns, n_classes=2, config=config)
+  return tf.estimator.DNNClassifier(hidden_units=[100, 75, 50, 25],
+    feature_columns=deep_columns, n_classes=2, config=config,
+    optimizer=tf.train.AdamOptimizer(
+      learning_rate=0.001
+    ))
 
 def parse_label_column(label_string_tensor):
   """Parses a string tensor into the label tensor

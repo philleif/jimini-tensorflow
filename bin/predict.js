@@ -18,34 +18,42 @@ const run = async () => {
     //db.Position.remove({}, function() {})
     db.AgendaJob.remove({}, function() {})
 
-    agenda.define("main trading loop", async (job, done) => {
-      try {
-        for (let pair of config.get("trading.pairs")) {
-          agenda.now("run loop", { pair: pair, timeframe: TIMEFRAME })
+    agenda.define(
+      "main trading loop",
+      { priority: "high", concurrency: 3 },
+      async (job, done) => {
+        try {
+          for (let pair of config.get("trading.pairs")) {
+            agenda.now("run loop", { pair: pair, timeframe: TIMEFRAME })
+          }
+
+          done()
+        } catch (error) {
+          console.log(error)
+          done()
         }
-
-        done()
-      } catch (error) {
-        console.log(error)
-        done()
       }
-    })
+    )
 
-    agenda.define("run loop", async (job, done) => {
-      try {
-        let data = job.attrs.data
-        await runLoop(data.pair, data.timeframe)
+    agenda.define(
+      "run loop",
+      { priority: "high", concurrency: 3 },
+      async (job, done) => {
+        try {
+          let data = job.attrs.data
+          await runLoop(data.pair, data.timeframe)
 
-        done()
-      } catch (error) {
-        console.log(error)
-        done()
+          done()
+        } catch (error) {
+          console.log(error)
+          done()
+        }
       }
-    })
+    )
 
     agenda.define(
       "check prices",
-      { priority: "high", concurrency: 5 },
+      { priority: "low", concurrency: 5 },
       async (job, done) => {
         try {
           let position = job.attrs.data.position
@@ -129,7 +137,7 @@ const runLoop = async (pair, timeframe) => {
       bop: lastCandle.bop,
       tsf_net_percent: lastCandle.tsf_net_percent,
       emv: lastCandle.emv,
-      ppo_smoothed: ppoForecast
+      ppo: ppoForecast
     }
 
     let prediction = await trade.getPrediction(predictObject, pair)
@@ -150,10 +158,7 @@ const runLoop = async (pair, timeframe) => {
 
     // prediction: BUY, no current position
     // open a new position
-    if (
-      prediction.strategy === "BUY" &&
-      !position
-    ) {
+    if (prediction.strategy === "BUY" && !position) {
       trade.openPosition(
         pair,
         prophetForecasts,
